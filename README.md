@@ -70,6 +70,8 @@ With Homebrew:
 brew install albertovincenzi/tap/bignami
 ```
 
+If Homebrew says the tap is untrusted, run `brew trust albertovincenzi/tap` and install again.
+
 With Go:
 
 ```sh
