@@ -50,6 +50,7 @@ type model struct {
 	err, info  string
 	awsProfile string
 	awsRegion  string
+	gcpProject string // Google Cloud project of this session; gcloud config is not changed
 	kubeCtx    string
 	kubeNS     string
 	recents    *recents
@@ -224,11 +225,19 @@ func (m *model) pickerKey(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch k.String() {
 	case "q", "esc":
 		return m.quit()
-	case "left", "right", "up", "down", "h", "l", "tab", "shift+tab":
+	case "left", "h", "shift+tab":
+		m.sel = (m.sel + len(domains) - 1) % len(domains)
+	case "right", "l", "tab":
 		m.sel = (m.sel + 1) % len(domains)
-	case "1", "2":
-		m.sel = int(k.String()[0] - '1')
-		return m, m.openDomain()
+	case "up", "k":
+		m.sel = max(m.sel-2, 0)
+	case "down", "j":
+		m.sel = min(m.sel+2, len(domains)-1)
+	case "1", "2", "3", "4", "5", "6", "7", "8", "9":
+		if i := int(k.String()[0] - '1'); i < len(domains) {
+			m.sel = i
+			return m, m.openDomain()
+		}
 	case "enter":
 		return m, m.openDomain()
 	}

@@ -38,19 +38,23 @@ You know what you want: "who is blocking this email address?", "why is this queu
 
 ## What it does
 
-Two domains. Each one has products, and each product has its commands.
+Six domains. Each one has products, and each product has its commands.
 
 | Domain | Product | Commands |
 |---|---|---|
 | **AWS** | Session | MFA login (12h), who am I, switch profile, switch region, shell with the profile, custom `aws` command |
 | | S3 | Pick a bucket: browse, security audit, size, presigned link, preview, metadata, versions, restore a deleted object, download, upload |
-| | SES | Identities, suppression list (check, remove, recent), account status, test email |
+| | SES | Reputation (bounce and complaint rate), send statistics, identities (details, DKIM records, policies), suppression list, configuration sets, templates, account, test email |
 | | SNS | Pick a topic: subscriptions, filter policies, attributes, test message |
 | | SQS | Queues with message counts (a non-empty DLQ turns red), peek, send, redrive a DLQ, redrive status, purge |
 | | IAM | My access, "can I do this?" simulation, access key age, MFA devices, roles |
-| **Kubernetes** | Cluster | Switch context and namespace |
-| | Workloads | Pods (logs, shell, describe), deployments, `top pods` |
-| | Debug | Recent events, port-forward, custom `kubectl` command |
+| **Kubernetes** | Cluster | Switch context and namespace, namespaces, nodes, node usage |
+| | Workloads | Pods (an empty namespace offers the ones that have pods), unhealthy pods, most restarts, deployments, usage |
+| | Debug | Warnings of the whole cluster, events, port-forward, custom `kubectl` command |
+| **GitHub** | Pull requests, Actions, Repo | My PRs, PRs to review, checks; runs, failed logs, re-run; releases, issues (uses `gh` in the current folder) |
+| **Helm** | Releases, Charts | Releases, status, history, values, manifest, rollback; repos and search |
+| **Google Cloud** | Account, GKE, Secrets, Logs | Who am I, switch project, clusters, credentials, secrets, log queries |
+| **Docker** | Containers, Images and disk, Compose | Logs, shell, stats, restart, stop; disk usage, clean up; services of a Compose file |
 
 <p align="center">
   <img alt="S3 bucket security audit" src="assets/screenshot-s3.svg" width="760">
@@ -58,7 +62,7 @@ Two domains. Each one has products, and each product has its commands.
 
 ## Install
 
-You need the [AWS CLI](https://aws.amazon.com/cli/) and `kubectl` in your `PATH`. macOS and Linux are supported.
+You need the CLIs of the domains you use in your `PATH`: [AWS CLI](https://aws.amazon.com/cli/), `kubectl`, `gh`, `helm`, `gcloud`, `docker`. macOS and Linux are supported.
 
 With Homebrew:
 
@@ -100,6 +104,7 @@ bignami
 | `←` `→` or `1` `2` | Choose a domain |
 | `enter` | Open a domain or product, or run a command |
 | `r` | Change the AWS region (AWS screens) |
+| `m` | MFA login (AWS screens). bignami suggests it when a command is denied for lack of MFA |
 | `/` | Filter the list |
 | `tab` | Move the focus to the output pane (scroll with `↑↓`, `PgUp`, `PgDn`, `g`, `G`) |
 | `x` | Stop the running command |
@@ -112,7 +117,7 @@ Commands that need a real terminal, such as a shell in a pod, take over the scre
 
 ## AWS and MFA
 
-The MFA login uses the profile shown in the AWS card. If you do not use `AWS_PROFILE`, it uses `default`.
+The MFA session survives a restart: bignami remembers your profile and region and uses the `<name>-mfa` profile while it is valid. The MFA login uses the profile shown in the AWS card. If you do not use `AWS_PROFILE`, it uses `default`.
 
 1. It reads your MFA device serial with `iam list-mfa-devices`. You can set it yourself with `BIGNAMI_MFA_SERIAL`.
 2. It asks for the 6-digit code and calls `sts get-session-token`.
@@ -147,13 +152,13 @@ command = "bignami"
 args = ["mcp"]
 ```
 
-It is **read-only** by default: audits, queue depth, message peek, suppression list, IAM simulation, pod logs. Commands that change data (purge, redrive, send, publish, upload, undelete) appear only with `bignami mcp --allow-write`, and each one needs a `confirm` value, the same name you type in the TUI. Output is cut at 256 KB and every call stops after 60 seconds.
+It is **read-only** by default: audits, SES reputation and statistics, queue depth, message peek, IAM simulation, pod logs and unhealthy pods, CI runs, Helm releases, Docker logs. Secret values are never exposed. Commands that change data (purge, redrive, send, publish, upload, undelete, re-run a CI run, Helm rollback, restart a container) appear only with `bignami mcp --allow-write`, and each one needs a `confirm` value, the same name you type in the TUI. Output is cut at 256 KB and every call stops after 60 seconds.
 
 Keep in mind that an agent with your MFA session can read what you can read.
 
 ## Safety
 
-- bignami never changes your kubeconfig. It keeps its own context and namespace, and it passes `--context` on every call.
+- bignami keeps its own Kubernetes context, namespace and Google Cloud project, and passes them on every call. Your kubeconfig and gcloud config are not changed, except when you ask for "Get credentials" (it asks you to confirm).
 - If the context name contains `prod`, the card turns red. Opening a shell or running a free `kubectl` command asks you to type `prod` first.
 - Commands that delete, purge, send, upload or move data ask you to type the name of the target first.
 - The MFA code and the session token are never written to logs.

@@ -259,7 +259,7 @@ func (m *model) foot(cw int) string {
 	case m.prompting:
 		h = hints("enter", "run", "esc", "cancel")
 	case m.cur() == nil:
-		h = hints("←→", "choose", "enter", "open", "1/2", "jump", "q", "quit")
+		h = hints("←→", "choose", "enter", "open", "1-6", "jump", "q", "quit")
 	case m.focusOut:
 		h = hints("↑↓ pgup pgdn", "scroll", "g/G", "top/bottom", "x", "stop", "tab", "back")
 	case m.cur().FilterState() == list.Filtering:
@@ -340,28 +340,76 @@ func logo(name string) string {
 	return lipgloss.Place(23, 9, lipgloss.Center, lipgloss.Center, art)
 }
 
+// pickerView draws one card per domain. The first two get the big logos when the window is tall enough.
 func (m *model) pickerView(w, h int) string {
-	each := (w - 2) / 2
-	var cards []string
-	for i, d := range domains {
+	const gap = 1
+	n := len(domains)
+	smallCols := 4
+	if w < 96 {
+		smallCols = 2
+	}
+	rows := func(k, cols int) int { return (k + cols - 1) / cols }
+	bigFits := w >= 60 && h >= 17+1+rows(n-2, smallCols)*5
+	card := func(i, width int, big bool) string {
+		d := domains[i]
 		sel := i == m.sel
 		border, b := lipgloss.TerminalColor(cBorder), lipgloss.RoundedBorder()
 		if sel {
 			border, b = cBar, lipgloss.ThickBorder()
 		}
-		title := tint(cText).Bold(true).Render(d.name)
+		title := tint(d.color).Bold(true).Render(d.icon+" ") + tint(cText).Bold(true).Render(d.name)
 		sub := tint(cMuted).Render(fmt.Sprintf("%d products", len(d.products)))
+		if d.blurb != "" {
+			sub = tint(cMuted).Render(d.blurb)
+		}
 		cta := " "
 		if sel {
 			cta = tint(cBar).Bold(true).Render("enter ▸ open")
 		}
 		body := title + "\n" + sub + "\n" + cta
-		if h >= 19 {
-			body = logo(d.name) + "\n\n" + body
+		pad := 0
+		if big {
+			body = logo(d.name) + "\n\n" + tint(cText).Bold(true).Render(d.name) + "\n" + tint(cMuted).Render(fmt.Sprintf("%d products", len(d.products))) + "\n" + cta
+			pad = 1
 		}
-		cards = append(cards, lipgloss.NewStyle().Border(b).BorderForeground(border).
-			Padding(1, 2).Width(each-2).Align(lipgloss.Center).Render(body))
+		return lipgloss.NewStyle().Border(b).BorderForeground(border).
+			Padding(pad, 2).Width(width - 2).Align(lipgloss.Center).Render(body)
 	}
-	row := lipgloss.JoinHorizontal(lipgloss.Center, cards[0], " ", cards[1])
-	return lipgloss.Place(w, h, lipgloss.Center, lipgloss.Center, row)
+	grid := func(idx []int, cols int) string {
+		var lines []string
+		for start := 0; start < len(idx); start += cols {
+			end := min(start+cols, len(idx))
+			each := (w - gap*(cols-1)) / cols
+			var cs []string
+			for k, i := range idx[start:end] {
+				if k > 0 {
+					cs = append(cs, " ")
+				}
+				cs = append(cs, card(i, each, false))
+			}
+			lines = append(lines, lipgloss.JoinHorizontal(lipgloss.Top, cs...))
+		}
+		return lipgloss.JoinVertical(lipgloss.Left, lines...)
+	}
+	var content string
+	if bigFits {
+		each := (w - 2) / 2
+		top := lipgloss.JoinHorizontal(lipgloss.Top, card(0, each, true), " ", card(1, each, true))
+		rest := make([]int, 0, n-2)
+		for i := 2; i < n; i++ {
+			rest = append(rest, i)
+		}
+		content = lipgloss.JoinVertical(lipgloss.Left, top, "", grid(rest, smallCols))
+	} else {
+		all := make([]int, n)
+		for i := range all {
+			all[i] = i
+		}
+		cols := 3
+		if w < 80 {
+			cols = 2
+		}
+		content = grid(all, cols)
+	}
+	return lipgloss.NewStyle().MaxHeight(h).Render(lipgloss.Place(w, h, lipgloss.Center, lipgloss.Center, content))
 }

@@ -714,9 +714,12 @@
 <text x="526.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#f1f5f9" font-weight="700" textLength="9.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">r</text>
 <text x="544.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#93a3b8" textLength="54.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">region</text>
 <text x="616.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#334155" textLength="9.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">·</text>
-<text x="643.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#f1f5f9" font-weight="700" textLength="27.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">esc</text>
-<text x="679.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#93a3b8" textLength="36.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">back</text>
-<text x="733.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#334155" textLength="9.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">·</text>
-<text x="760.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#f1f5f9" font-weight="700" textLength="9.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">q</text>
-<text x="778.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#93a3b8" textLength="36.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">quit</text>
+<text x="643.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#f1f5f9" font-weight="700" textLength="9.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">m</text>
+<text x="661.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#93a3b8" textLength="27.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">mfa</text>
+<text x="706.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#334155" textLength="9.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">·</text>
+<text x="733.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#f1f5f9" font-weight="700" textLength="27.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">esc</text>
+<text x="769.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#93a3b8" textLength="36.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">back</text>
+<text x="823.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#334155" textLength="9.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">·</text>
+<text x="850.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#f1f5f9" font-weight="700" textLength="9.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">q</text>
+<text x="868.00" y="756.80" font-family="Menlo,SFMono-Regular,Consolas,'DejaVu Sans Mono',monospace" font-size="15" fill="#93a3b8" textLength="36.00" lengthAdjust="spacingAndGlyphs" xml:space="preserve">quit</text>
 </svg>

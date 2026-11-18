@@ -99,6 +99,10 @@ func (m *model) k8sPods() tea.Cmd {
 				act: func(m *model) tea.Cmd { return m.podMenu(pod) }})
 		}
 		if len(items) == 0 {
+			// An empty namespace is the usual reason: offer the namespaces that have pods.
+			if other, err := m.k8sEmptyNamespaces(m.kubeCtx); err == nil && len(other) > 0 {
+				return other, nil
+			}
 			return nil, fmt.Errorf("no pods found")
 		}
 		return items, nil

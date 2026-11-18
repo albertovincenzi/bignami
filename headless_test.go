@@ -25,8 +25,15 @@ func stubAWS(t *testing.T) {
 	t.Setenv("AWS_REGION", "eu-west-1")
 }
 
+// numericArgs are validated before they reach a command, so the tests give them valid values.
+var numericArgs = map[string]string{"expires": "60", "tail": "10", "action": "s3:GetObject", "from": "a@b.co", "to": "c@d.co", "address": "c@d.co",
+	"number": "12", "run_id": "99", "revision": "3", "limit": "10", "freshness": "2h", "status": "failure", "all": "true"}
+
 func sampleArgs(c cmdSpec) map[string]string {
-	over := map[string]string{"expires": "60", "tail": "10", "action": "s3:GetObject", "from": "a@b.co", "to": "c@d.co", "address": "c@d.co"}
+	over := map[string]string{}
+	for k, v := range numericArgs {
+		over[k] = v
+	}
 	a := map[string]string{}
 	for _, s := range c.args {
 		a[s.name] = "va'l ue"
@@ -93,7 +100,7 @@ func TestRunCmdNeverExecutesInput(t *testing.T) {
 			}
 			args := sampleArgs(c)
 			for k := range args {
-				if k != "expires" && k != "tail" && k != "action" {
+				if _, fixed := numericArgs[k]; !fixed {
 					args[k] = v
 				}
 			}
