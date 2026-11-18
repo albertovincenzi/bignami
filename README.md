@@ -1,8 +1,6 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-    <img alt="bignami" src="assets/logo-light.svg" width="460">
-  </picture>
+  <img alt="bignami" src="assets/logo-dark.svg#gh-dark-mode-only" width="460">
+  <img alt="bignami" src="assets/logo-light.svg#gh-light-mode-only" width="460">
 </p>
 
 <p align="center">
