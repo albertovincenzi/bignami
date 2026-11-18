@@ -44,12 +44,8 @@ You need the [AWS CLI](https://aws.amazon.com/cli/) and `kubectl` in your `PATH`
 With Homebrew:
 
 ```sh
-brew tap albertovincenzi/bignami https://github.com/albertovincenzi/bignami
-brew trust albertovincenzi/bignami
-brew install bignami
+brew install albertovincenzi/tap/bignami
 ```
-
-Recent Homebrew versions refuse to load a formula from a third-party tap until you trust the tap. The `brew trust` line does that. Read the [formula](Formula/bignami.rb) first if you want to check it.
 
 With Go:
 

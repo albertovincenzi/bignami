@@ -18,14 +18,17 @@ checksum:
 changelog:
   sort: asc
 
-# The tap lives in this repository (Formula/). Users tap it with its URL, so no extra repo or token is needed.
+# The formula goes to the shared tap, so users run one command: brew install albertovincenzi/tap/bignami
+# shortcut: 'brews' is deprecated in favour of 'homebrew_casks', but a cask needs a signed binary
+# or an xattr hook that turns off Gatekeeper; a formula does not. Move when GoReleaser v3 drops 'brews'.
 brews:
   - name: bignami
     repository:
       owner: albertovincenzi
-      name: bignami
-      branch: main
-      token: "{{ .Env.GITHUB_TOKEN }}"
+      name: homebrew-tap
+      git:
+        url: git@github.com:albertovincenzi/homebrew-tap.git
+        private_key: "{{ .Env.HOMEBREW_TAP_DEPLOY_KEY }}"
     directory: Formula
     homepage: https://github.com/albertovincenzi/bignami
     description: "A TUI cheat sheet for forgetful devs: AWS and Kubernetes commands with live output"
