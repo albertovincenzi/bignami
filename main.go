@@ -251,6 +251,7 @@ Flags: --profile --region --confirm <value> --allow-write --timeout 30s  -v, --v
 func (m *model) detect() {
 	ctx, _ := out(nil, "kubectl", "config", "current-context") // no kubectl or no context: empty, shown as "no context"
 	m.kubeCtx = strings.TrimSpace(ctx)
+	m.awsProfile = resolveProfile(m.awsProfile) // a valid MFA session wins: accounts that enforce MFA deny the plain profile
 	m.awsRegion = detectRegion(m.awsProfile)
 }
 

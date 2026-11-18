@@ -143,6 +143,9 @@ func (m *model) banner() string {
 
 func (m *model) head(cw int) string {
 	banner := m.banner()
+	if m.h > 0 && m.h < 26 { // short window: the name only, the list needs the room
+		return banner
+	}
 
 	each, gap := cw, 0
 	if cw >= 76 {

@@ -73,9 +73,10 @@ func sesIdentityScript(id string) string {
 	return "aws sesv2 get-email-identity --email-identity " + shQuote(id)
 }
 
+// sesSuppressedGetScript tells "not on the list" apart from a real error (no permission, no network), and keeps the exit status.
 func sesSuppressedGetScript(addr string) string {
-	return "aws sesv2 get-suppressed-destination --email-address " + shQuote(addr) +
-		` || echo "-> not on the suppression list, or the lookup failed (see above)"`
+	return `O=$(aws sesv2 get-suppressed-destination --email-address ` + shQuote(addr) + ` 2>&1); S=$?
+if [ $S -eq 0 ]; then echo "$O"; elif echo "$O" | grep -q NotFoundException; then echo "not on the suppression list"; else echo "$O"; exit $S; fi`
 }
 
 func sesSuppressedDeleteScript(addr string) string {

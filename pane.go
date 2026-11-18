@@ -97,7 +97,7 @@ func (m *model) rewrap() {
 }
 
 func (m *model) wrapLine(s string) []string {
-	return strings.Split(ansi.Hardwrap(s, m.vp.Width, true), "\n")
+	return strings.Split(ansi.Wrap(s, m.vp.Width, ""), "\n")
 }
 
 func appendCapped(dst, add []string) []string {
