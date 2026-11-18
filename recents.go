@@ -6,6 +6,12 @@ import (
 	"path/filepath"
 )
 
+// keys of the choices that survive a restart: the AWS profile and region of the last session.
+const (
+	recentProfile = "_aws_profile"
+	recentRegion  = "_aws_region"
+)
+
 // recents remembers the last value typed for each prompt, so you do not retype the same bucket or queue.
 // It is a convenience: a read or write error is ignored on purpose (shortcut: no cache, nothing breaks).
 type recents struct {

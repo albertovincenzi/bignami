@@ -127,10 +127,14 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case errMsg:
 		m.busy, m.err = "", msg.err.Error()
+		if h := m.mfaHint(m.err); h != "" {
+			m.err = h
+		}
 		return m, nil
 	case loginDoneMsg:
 		m.busy, m.awsProfile = "", msg.profile
-		m.info = "logged in. In your shell run: export AWS_PROFILE=" + msg.profile
+		m.recents.set(recentProfile, strings.TrimSuffix(msg.profile, mfaSuffix))
+		m.info = "MFA session active for 12h (profile " + msg.profile + "). It survives a restart."
 		return m, nil
 	case tea.KeyMsg:
 		return m.key(msg)
@@ -182,6 +186,10 @@ func (m *model) key(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "q":
 		if state != list.Filtering {
 			return m.quit()
+		}
+	case "m":
+		if m.sel == 0 && state != list.Filtering {
+			return m, mfaLogin(m)
 		}
 	case "r":
 		if m.sel == 0 && state != list.Filtering && !strings.HasSuffix(l.Title, "regions") {
@@ -251,8 +259,18 @@ Flags: --profile --region --confirm <value> --allow-write --timeout 30s  -v, --v
 func (m *model) detect() {
 	ctx, _ := out(nil, "kubectl", "config", "current-context") // no kubectl or no context: empty, shown as "no context"
 	m.kubeCtx = strings.TrimSpace(ctx)
+	if os.Getenv("AWS_PROFILE") == "" {
+		if p := m.recents.get(recentProfile); p != "" {
+			m.awsProfile = p // the profile of the last session
+		}
+	}
 	m.awsProfile = resolveProfile(m.awsProfile) // a valid MFA session wins: accounts that enforce MFA deny the plain profile
 	m.awsRegion = detectRegion(m.awsProfile)
+	if os.Getenv("AWS_REGION") == "" && os.Getenv("AWS_DEFAULT_REGION") == "" {
+		if r := m.recents.get(recentRegion); r != "" {
+			m.awsRegion = r
+		}
+	}
 }
 
 func main() {

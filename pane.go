@@ -211,6 +211,11 @@ func (m *model) onDone(msg doneMsg) {
 		return
 	}
 	r.done, r.err, r.elapsed = true, msg.err, time.Since(r.started)
+	if msg.err != nil {
+		if h := m.mfaHint(strings.Join(r.lines, "\n")); h != "" {
+			m.err = h
+		}
+	}
 }
 
 // outKey handles keys while the output pane has the focus.

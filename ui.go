@@ -181,7 +181,7 @@ func card(width int, border lipgloss.TerminalColor, lines ...string) string {
 func (m *model) awsCard(width int) string {
 	label := tint(cAWS).Bold(true).Render(iconAWS + " AWS")
 	name := tint(cText).Bold(true).Render(m.awsProfile) + "  " + tint(cMuted).Render(m.regionLabel())
-	session := tint(cMuted).Render("long-term credentials")
+	session := tint(cMuted).Render("no MFA session · press m")
 	border := lipgloss.TerminalColor(cBorder)
 	if left, ok := awsRemaining(m.awsProfile); ok {
 		switch {
@@ -269,7 +269,7 @@ func (m *model) foot(cw int) string {
 	default:
 		keys := []string{"↑↓", "move", "enter", "run", "/", "filter", "tab", "output"}
 		if m.sel == 0 {
-			keys = append(keys, "r", "region")
+			keys = append(keys, "r", "region", "m", "mfa")
 		}
 		h = hints(append(keys, "esc", "back", "q", "quit")...)
 	}

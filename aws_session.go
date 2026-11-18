@@ -10,6 +10,23 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// mfaDenyRe matches a denial that names MFA: an explicit deny of an "EnforceMFA..." policy, or a missing MFA context.
+var mfaDenyRe = regexp.MustCompile(`(?is)(AccessDenied|not authorized|UnauthorizedOperation).*(mfa|multifactor)`)
+
+// sessionActive says whether the profile in use is a valid MFA session.
+func (m *model) sessionActive() bool {
+	left, ok := awsRemaining(m.awsProfile)
+	return strings.HasSuffix(m.awsProfile, mfaSuffix) && ok && left > 0
+}
+
+// mfaHint explains a denial that needs MFA. With a valid MFA session the denial is a real missing permission, so no hint.
+func (m *model) mfaHint(text string) string {
+	if m.sel != 0 || m.sessionActive() || !mfaDenyRe.MatchString(text) {
+		return ""
+	}
+	return "this needs an MFA session: press m to log in"
+}
+
 var regionRe = regexp.MustCompile(`^[a-z]{2}(-[a-z]+)+-\d$`)
 
 var awsRegions = []string{
@@ -138,6 +155,7 @@ func switchProfile(m *model) tea.Cmd {
 		for _, p := range ps {
 			items = append(items, item{title: p, icon: "●", color: cAWS, act: func(m *model) tea.Cmd {
 				m.awsProfile = p
+				m.recents.set(recentProfile, strings.TrimSuffix(p, mfaSuffix))
 				return m.back("AWS profile: " + p)
 			}})
 		}
@@ -150,6 +168,7 @@ func switchRegion(m *model) tea.Cmd {
 	set := func(r string) func(*model) tea.Cmd {
 		return func(m *model) tea.Cmd {
 			m.awsRegion = r
+			m.recents.set(recentRegion, r)
 			if r == "" {
 				return m.back("AWS region: profile default")
 			}
