@@ -28,9 +28,9 @@ You know what you want: "who is blocking this email address?", "why is this queu
 
 - **Pick, do not type.** Buckets, topics, queues and roles come from a list. No ARNs to paste.
 - **Safe by default.** Anything that deletes, sends or moves data asks you to type the name first. Prod contexts turn red.
-- **It remembers.** The last value you typed for each prompt is already there next time.
+- **It remembers.** The last value you typed for each prompt, and your AWS profile and region, are there next time.
 - **Region and profile in one key.** Press `r` on any AWS screen.
-- **Never in your way.** Your kubeconfig is not touched. MFA codes are not logged.
+- **Never in your way.** Your kubeconfig and gcloud config are not touched. MFA codes are not logged.
 
 <p align="center">
   <img alt="SQS dead-letter queue, peeking at messages" src="assets/screenshot-sqs.svg" width="760">
@@ -85,7 +85,7 @@ Or download a binary from the [releases page](https://github.com/albertovincenzi
 Each release has a keyless [Sigstore](https://www.sigstore.dev) signature of `checksums.txt`, made by the release workflow. It proves the files come from this repository. Install [cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then:
 
 ```sh
-v=0.2.0   # the version you downloaded
+v=0.2.1   # the version you downloaded, with checksums.txt and checksums.txt.sigstore.json from the same release
 cosign verify-blob \
   --certificate-identity "https://github.com/albertovincenzi/bignami/.github/workflows/release.yml@refs/tags/v$v" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
@@ -103,7 +103,7 @@ bignami
 
 | Key | Action |
 |---|---|
-| `←` `→` or `1` `2` | Choose a domain |
+| `←` `→` `↑` `↓` or `1`-`6` | Choose a domain |
 | `enter` | Open a domain or product, or run a command |
 | `r` | Change the AWS region (AWS screens) |
 | `m` | MFA login (AWS screens). bignami suggests it when a command is denied for lack of MFA |
@@ -137,6 +137,8 @@ bignami login --code 123456           # start the 12h session (you type the code
 bignami list                          # the commands (add --all to see the ones that write)
 bignami run s3.audit bucket=my-bucket # run one command
 ```
+
+A command that changes data needs `--allow-write` and `--confirm <name>`, for example `bignami run sqs.purge queue_url=<url> --allow-write --confirm <queue name>`.
 
 `status` tells an agent what to do next: when the session is expired, `next_step` says to ask you for the code.
 
@@ -172,7 +174,7 @@ go test ./...
 go run .
 ```
 
-The code is small: `main.go` (state and keys), `domains.go` (domains and products), `aws_*.go` and `k8s.go` (the commands), `prompts.go` and `recents.go` (input), `pane.go` (the output pane), `ui.go` (the look).
+The code is small: `main.go` (state and keys), `domains.go` (domains and products), `aws_*.go`, `k8s*.go` and `tools_*.go` (the commands of each domain), `prompts.go` and `recents.go` (input), `pane.go` (the output pane), `ui.go` (the look). `headless*.go`, `cli.go` and `mcp.go` serve scripts and agents with the same scripts as the TUI.
 
 The screenshots above come from the real UI with made-up data: run `scripts/shots.sh` to regenerate them.
 
