@@ -120,6 +120,37 @@ The MFA login uses the profile shown in the AWS card. If you do not use `AWS_PRO
 
 A program cannot change the environment of the shell that started it. So use the new profile with `export AWS_PROFILE=<name>-mfa`, or pick "Shell with this profile".
 
+## For scripts and agents
+
+Claude Code, Codex and scripts can use the same commands without the TUI. An MFA code needs a human, so the flow is: you type the code once, and the agent uses the 12h session.
+
+```sh
+bignami status --json                 # profile, region, MFA time left; exit code 2 if the session is missing
+bignami login --code 123456           # start the 12h session (you type the code)
+bignami list                          # the commands (add --all to see the ones that write)
+bignami run s3.audit bucket=my-bucket # run one command
+```
+
+`status` tells an agent what to do next: when the session is expired, `next_step` says to ask you for the code.
+
+**MCP server.** `bignami mcp` speaks MCP on stdio and exposes every command as a tool.
+
+```sh
+claude mcp add bignami -- bignami mcp
+```
+
+For Codex, add this to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.bignami]
+command = "bignami"
+args = ["mcp"]
+```
+
+It is **read-only** by default: audits, queue depth, message peek, suppression list, IAM simulation, pod logs. Commands that change data (purge, redrive, send, publish, upload, undelete) appear only with `bignami mcp --allow-write`, and each one needs a `confirm` value, the same name you type in the TUI. Output is cut at 256 KB and every call stops after 60 seconds.
+
+Keep in mind that an agent with your MFA session can read what you can read.
+
 ## Safety
 
 - bignami never changes your kubeconfig. It keeps its own context and namespace, and it passes `--context` on every call.
