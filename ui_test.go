@@ -26,7 +26,7 @@ func TestViewsFitTerminal(t *testing.T) {
 			screens[name]()
 			v := m.View()
 			for i, ln := range strings.Split(v, "\n") {
-				if w := ansi.StringWidth(ln); w > m.w {
+				if w := lineWidth(ln); w > m.w {
 					t.Errorf("%s %v line %d is %d wide: %q", name, size, i, w, ansi.Strip(ln))
 				}
 			}
@@ -91,7 +91,7 @@ func TestPaneLayoutsFit(t *testing.T) {
 		drain(t, m, m.capture(nil, `for i in 1 2 3; do echo "line $i with a very long tail xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; done`))
 		v := m.View()
 		for i, ln := range strings.Split(v, "\n") {
-			if w := ansi.StringWidth(ln); w > m.w {
+			if w := lineWidth(ln); w > m.w {
 				t.Errorf("%v line %d is %d wide: %q", size, i, w, ansi.Strip(ln))
 			}
 		}
@@ -103,3 +103,5 @@ func TestPaneLayoutsFit(t *testing.T) {
 		}
 	}
 }
+
+func lineWidth(s string) int { return ansi.StringWidth(s) }

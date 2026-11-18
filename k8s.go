@@ -53,7 +53,7 @@ func (m *model) k8sContexts() tea.Cmd {
 			}
 			items = append(items, item{title: c, desc: desc, icon: "◈", color: ctxColor(c), act: func(m *model) tea.Cmd {
 				m.kubeCtx, m.kubeNS = c, ""
-				return m.home("context: " + c)
+				return m.back("context: " + c)
 			}})
 		}
 		return items, nil
@@ -69,12 +69,12 @@ func (m *model) k8sNamespaces() tea.Cmd {
 		}
 		items := []list.Item{item{title: "(context default)", act: func(m *model) tea.Cmd {
 			m.kubeNS = ""
-			return m.home("namespace: context default")
+			return m.back("namespace: context default")
 		}}}
 		for _, ns := range strings.Fields(s) {
 			items = append(items, item{title: ns, icon: iconK8s, color: cK8s, act: func(m *model) tea.Cmd {
 				m.kubeNS = ns
-				return m.home("namespace: " + ns)
+				return m.back("namespace: " + ns)
 			}})
 		}
 		return items, nil

@@ -109,9 +109,39 @@ func styleList(l *list.Model) {
 
 // --- header ---
 
+var (
+	cViolet = lipgloss.Color("#6741EA")
+	cLime   = lipgloss.Color("#E4FF00")
+	cWhite  = lipgloss.Color("#FFFFFF")
+)
+
+// logoMark is the bignami icon: a violet note holding a prompt, drawn with half blocks (3 rows, 6 columns).
+func logoMark() [3]string {
+	v := tint(cViolet)
+	bg := lipgloss.NewStyle().Background(cViolet)
+	return [3]string{
+		v.Render("▄▄▄▄▄▄"),
+		bg.Render(" ") + bg.Foreground(cLime).Bold(true).Render(">") + bg.Foreground(cWhite).Bold(true).Render("_") + bg.Render("   "),
+		v.Render("▀▀▀▀▀▀"),
+	}
+}
+
+// banner is the logo with the name and the tagline. Short terminals get a one-line version.
+func (m *model) banner() string {
+	name := tint(cText).Bold(true).Render("bignami")
+	if version != "dev" {
+		name += " " + tint(cMuted).Render(version)
+	}
+	tag := tint(cMuted).Render("a cheat sheet for forgetful devs")
+	mark := logoMark()
+	if m.h > 0 && m.h < 34 {
+		return mark[1] + "  " + name + "  " + tag
+	}
+	return mark[0] + "\n" + mark[1] + "  " + name + "\n" + mark[2] + "  " + tag
+}
+
 func (m *model) head(cw int) string {
-	banner := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#0F172A")).Background(lipgloss.Color("#E4FF00")).Padding(0, 1).Render("bignami") +
-		"  " + tint(cMuted).Render("a cheat sheet for forgetful devs")
+	banner := m.banner()
 
 	each, gap := cw, 0
 	if cw >= 76 {
@@ -146,7 +176,7 @@ func card(width int, border lipgloss.TerminalColor, lines ...string) string {
 
 func (m *model) awsCard(width int) string {
 	label := tint(cAWS).Bold(true).Render(iconAWS + " AWS")
-	name := tint(cText).Bold(true).Render(m.awsProfile)
+	name := tint(cText).Bold(true).Render(m.awsProfile) + "  " + tint(cMuted).Render(m.regionLabel())
 	session := tint(cMuted).Render("long-term credentials")
 	border := lipgloss.TerminalColor(cBorder)
 	if left, ok := awsRemaining(m.awsProfile); ok {
@@ -190,7 +220,7 @@ func (m *model) k8sCard(width int) string {
 
 func (m *model) promptView(w, h int) string {
 	border := lipgloss.TerminalColor(cAccent)
-	if strings.HasPrefix(m.label, "PROD") {
+	if strings.Contains(m.label, "type '") {
 		border = cErr
 	}
 	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(border).
@@ -231,9 +261,13 @@ func (m *model) foot(cw int) string {
 	case m.cur().FilterState() == list.Filtering:
 		h = hints("enter", "apply", "esc", "clear")
 	case m.running():
-		h = hints("↑↓", "move", "enter", "run", "tab", "output", "x", "stop", "esc", "domains", "q", "quit")
+		h = hints("↑↓", "move", "enter", "run", "tab", "output", "x", "stop", "esc", "back", "q", "quit")
 	default:
-		h = hints("↑↓", "move", "enter", "run", "/", "filter", "tab", "output", "esc", "domains", "q", "quit")
+		keys := []string{"↑↓", "move", "enter", "run", "/", "filter", "tab", "output"}
+		if m.sel == 0 {
+			keys = append(keys, "r", "region")
+		}
+		h = hints(append(keys, "esc", "back", "q", "quit")...)
 	}
 	return status + "\n" + ansi.Truncate(h, cw, "…")
 }
@@ -312,7 +346,7 @@ func (m *model) pickerView(w, h int) string {
 			border, b = cBar, lipgloss.ThickBorder()
 		}
 		title := tint(cText).Bold(true).Render(d.name)
-		sub := tint(cMuted).Render(fmt.Sprintf("%d commands", len(d.items())))
+		sub := tint(cMuted).Render(fmt.Sprintf("%d products", len(d.products)))
 		cta := " "
 		if sel {
 			cta = tint(cBar).Bold(true).Render("enter ▸ open")

@@ -19,19 +19,36 @@ var mfaCodeRe = regexp.MustCompile(`^\d{6}$`)
 
 // awsEnv selects a profile and drops static credentials from the environment,
 // because they would override the profile.
-func awsEnv(profile string) []string {
+func awsEnv(profile, region string) []string {
 	var env []string
 	for _, e := range os.Environ() {
 		switch {
 		case strings.HasPrefix(e, "AWS_ACCESS_KEY_ID="),
 			strings.HasPrefix(e, "AWS_SECRET_ACCESS_KEY="),
 			strings.HasPrefix(e, "AWS_SESSION_TOKEN="),
-			strings.HasPrefix(e, "AWS_PROFILE="):
+			strings.HasPrefix(e, "AWS_PROFILE="),
+			strings.HasPrefix(e, "AWS_REGION="),
+			strings.HasPrefix(e, "AWS_DEFAULT_REGION="):
 		default:
 			env = append(env, e)
 		}
 	}
-	return append(env, "AWS_PROFILE="+profile)
+	env = append(env, "AWS_PROFILE="+profile)
+	if region != "" {
+		env = append(env, "AWS_REGION="+region, "AWS_DEFAULT_REGION="+region)
+	}
+	return env
+}
+
+// detectRegion reads the region from the environment, then from the profile.
+func detectRegion(profile string) string {
+	for _, k := range []string{"AWS_REGION", "AWS_DEFAULT_REGION"} {
+		if v := os.Getenv(k); v != "" {
+			return v
+		}
+	}
+	s, _ := out(awsEnv(profile, ""), "aws", "configure", "get", "region") // unset region: empty, the profile default applies
+	return strings.TrimSpace(s)
 }
 
 // awsLogin gets a 12h MFA session for the base profile and saves it as
@@ -40,7 +57,7 @@ func awsLogin(base, code string) error {
 	if !mfaCodeRe.MatchString(code) {
 		return fmt.Errorf("the MFA code must have 6 digits")
 	}
-	env := awsEnv(base)
+	env := awsEnv(base, "")
 	serial := os.Getenv("BIGNAMI_MFA_SERIAL")
 	if serial == "" {
 		s, err := out(env, "aws", "iam", "list-mfa-devices",

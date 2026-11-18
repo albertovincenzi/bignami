@@ -49,22 +49,25 @@ type model struct {
 	busy       string
 	err, info  string
 	awsProfile string
+	awsRegion  string
 	kubeCtx    string
 	kubeNS     string
+	recents    *recents
+	remember   bool // the current prompt stores its answer
 }
 
 func newModel() *model {
-	ctx, _ := out(nil, "kubectl", "config", "current-context")
 	in := textinput.New()
 	in.Prompt = "❯ "
 	in.PromptStyle = tint(cBar)
 	in.Width = 44
+	profile := envOr("AWS_PROFILE", "default")
 	return &model{
 		in:         in,
 		vp:         viewport.New(10, 5),
 		spin:       spinner.New(spinner.WithSpinner(spinner.MiniDot), spinner.WithStyle(tint(cAccent))),
-		awsProfile: envOr("AWS_PROFILE", "default"),
-		kubeCtx:    strings.TrimSpace(ctx),
+		awsProfile: profile,
+		recents:    loadRecents(),
 	}
 }
 
@@ -89,13 +92,6 @@ func (m *model) push(title string, items []list.Item) {
 	m.stack = append(m.stack, &l)
 }
 
-// home goes back to the domain picker and shows a message.
-func (m *model) home(info string) tea.Cmd {
-	m.stack = nil
-	m.info = info
-	return nil
-}
-
 // load runs fn in the background and pushes the resulting screen.
 func (m *model) load(title string, fn func() ([]list.Item, error)) tea.Cmd {
 	m.busy = "loading " + title + "..."
@@ -106,16 +102,6 @@ func (m *model) load(title string, fn func() ([]list.Item, error)) tea.Cmd {
 		}
 		return pushMsg{title, items}
 	}
-}
-
-func (m *model) prompt(label string, secret bool, done func(*model, string) tea.Cmd) tea.Cmd {
-	m.prompting, m.label, m.done = true, label, done
-	m.in.EchoMode = textinput.EchoNormal
-	if secret {
-		m.in.EchoMode = textinput.EchoPassword
-	}
-	m.in.Focus()
-	return textinput.Blink
 }
 
 func (m *model) Init() tea.Cmd { return m.spin.Tick }
@@ -166,6 +152,9 @@ func (m *model) key(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 		switch k.String() {
 		case "enter":
 			v, done := strings.TrimSpace(m.in.Value()), m.done
+			if m.remember {
+				m.recents.set(m.label, v)
+			}
 			m.prompting = false
 			m.in.Reset()
 			return m, done(m, v)
@@ -193,6 +182,10 @@ func (m *model) key(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "q":
 		if state != list.Filtering {
 			return m.quit()
+		}
+	case "r":
+		if m.sel == 0 && state != list.Filtering && !strings.HasSuffix(l.Title, "regions") {
+			return m, switchRegion(m)
 		}
 	case "tab":
 		if m.paneVisible() {
@@ -236,7 +229,7 @@ func (m *model) pickerKey(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (m *model) openDomain() tea.Cmd {
 	d := domains[m.sel]
-	m.push(d.name, d.items())
+	m.push(d.name, productItems(d))
 	return nil
 }
 
@@ -244,6 +237,13 @@ func (m *model) openDomain() tea.Cmd {
 var version = "dev"
 
 const usage = "bignami: a TUI cheat sheet for AWS and Kubernetes commands.\nRun it without arguments. Flags: -v, --version  -h, --help"
+
+// detect reads the current Kubernetes context and AWS region from the machine.
+func (m *model) detect() {
+	ctx, _ := out(nil, "kubectl", "config", "current-context") // no kubectl or no context: empty, shown as "no context"
+	m.kubeCtx = strings.TrimSpace(ctx)
+	m.awsRegion = detectRegion(m.awsProfile)
+}
 
 func main() {
 	if bi, ok := debug.ReadBuildInfo(); ok && version == "dev" && bi.Main.Version != "" && bi.Main.Version != "(devel)" {
@@ -259,7 +259,9 @@ func main() {
 			return
 		}
 	}
-	if _, err := tea.NewProgram(newModel(), tea.WithAltScreen()).Run(); err != nil {
+	m := newModel()
+	m.detect()
+	if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
