@@ -115,13 +115,13 @@ var (
 	cWhite  = lipgloss.Color("#FFFFFF")
 )
 
-// logoMark is the bignami icon: a violet note holding a prompt, drawn with half blocks (3 rows, 6 columns).
+// logoMark is the bignami icon: a tired face with a sticky note: \"ls ?\", drawn with half blocks (3 rows, 6 columns).
 func logoMark() [3]string {
 	v := tint(cViolet)
 	bg := lipgloss.NewStyle().Background(cViolet)
 	return [3]string{
 		v.Render("▄▄▄▄▄▄"),
-		bg.Render(" ") + bg.Foreground(cLime).Bold(true).Render(">") + bg.Foreground(cWhite).Bold(true).Render("_") + bg.Render("   "),
+		bg.Render(" ") + lipgloss.NewStyle().Background(cLime).Foreground(lipgloss.Color("#0F172A")).Bold(true).Render("?") + bg.Foreground(cWhite).Bold(true).Render("-_-") + bg.Render(" "),
 		v.Render("▀▀▀▀▀▀"),
 	}
 }
