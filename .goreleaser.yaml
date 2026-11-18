@@ -4,7 +4,9 @@ builds:
   - env: [CGO_ENABLED=0]
     goos: [darwin, linux]
     goarch: [amd64, arm64]
-    ldflags: [-s -w]
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
 
 archives:
   - formats: [tar.gz]
@@ -15,3 +17,24 @@ checksum:
 
 changelog:
   sort: asc
+
+# The tap lives in this repository (Formula/). Users tap it with its URL, so no extra repo or token is needed.
+brews:
+  - name: bignami
+    repository:
+      owner: albertovincenzi
+      name: bignami
+      branch: main
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: https://github.com/albertovincenzi/bignami
+    description: "A TUI cheat sheet for forgetful devs: AWS and Kubernetes commands with live output"
+    license: MIT
+    commit_author:
+      name: bignami-release
+      email: 9381203+albertovincenzi@users.noreply.github.com
+    caveats: |
+      bignami runs the AWS CLI and kubectl. Install what you use:
+        brew install awscli kubernetes-cli
+    test: |
+      assert_match "bignami", shell_output("#{bin}/bignami --version")

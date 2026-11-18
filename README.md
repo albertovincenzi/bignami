@@ -41,6 +41,15 @@ Switch context and namespace, list pods (logs, shell, describe), deployments, re
 
 You need the [AWS CLI](https://aws.amazon.com/cli/) and `kubectl` in your `PATH`. macOS and Linux are supported.
 
+With Homebrew:
+
+```sh
+brew tap albertovincenzi/bignami https://github.com/albertovincenzi/bignami
+brew install bignami
+```
+
+With Go:
+
 ```sh
 go install github.com/albertovincenzi/bignami@latest
 ```

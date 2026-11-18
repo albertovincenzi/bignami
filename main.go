@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -239,7 +240,25 @@ func (m *model) openDomain() tea.Cmd {
 	return nil
 }
 
+// version is set at release time with -ldflags; "go install" builds read it from the module info.
+var version = "dev"
+
+const usage = "bignami: a TUI cheat sheet for AWS and Kubernetes commands.\nRun it without arguments. Flags: -v, --version  -h, --help"
+
 func main() {
+	if bi, ok := debug.ReadBuildInfo(); ok && version == "dev" && bi.Main.Version != "" && bi.Main.Version != "(devel)" {
+		version = bi.Main.Version
+	}
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "-v", "--version", "version":
+			fmt.Println("bignami", version)
+			return
+		case "-h", "--help", "help":
+			fmt.Println(usage)
+			return
+		}
+	}
 	if _, err := tea.NewProgram(newModel(), tea.WithAltScreen()).Run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
