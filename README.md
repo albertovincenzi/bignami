@@ -178,7 +178,18 @@ go test ./...
 go run .
 ```
 
-The code is small: `main.go` (state and keys), `domains.go` (domains and products), `aws_*.go`, `k8s*.go` and `tools_*.go` (the commands of each domain), `prompts.go` and `recents.go` (input), `pane.go` (the output pane), `ui.go` (the look). `headless*.go`, `cli.go` and `mcp.go` serve scripts and agents with the same scripts as the TUI.
+The code is small and split by job:
+
+| Folder | What it holds |
+|---|---|
+| `main.go` | The entry point: version, help, then the agent commands or the TUI |
+| `internal/tui` | The interface: state and keys (`model.go`), the look (`ui.go`), the output pane (`pane.go`), prompts, and the menu of each domain (`aws_*.go`, `k8s*.go`, `tools_*.go`) |
+| `internal/scripts` | The shell scripts behind every command, as plain functions with no UI. The TUI and the agent layer share them |
+| `internal/agent` | `bignami run`, `list`, `status`, `login` and the MCP server, with the registry of headless commands |
+| `internal/awsprofile` | AWS profiles, the MFA session in `~/.aws/credentials`, region detection |
+| `internal/shell` | Shell quoting and running a command |
+
+A new command is usually one function in `internal/scripts` and one menu entry in `internal/tui`.
 
 The screenshots above come from the real UI with made-up data: run `scripts/shots.sh` to regenerate them.
 
