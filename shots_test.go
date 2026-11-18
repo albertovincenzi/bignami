@@ -84,4 +84,15 @@ func TestRenderShots(t *testing.T) {
 		"== policy ==", "An error occurred (NoSuchBucketPolicy): The bucket policy does not exist", "",
 		"== logging ==", `{ "LoggingEnabled": { "TargetBucket": "acme-logs", "TargetPrefix": "s3/" } }`)
 	save("s3", s3)
+
+	ses := newShot(130, 36)
+	ses.openDomain()
+	ses.push("SES", sesItems())
+	show(ses, "SES reputation, last 7 days",
+		`{ "Enforcement": "HEALTHY", "SendingEnabled": true }`, "",
+		"bounce rate per day (review at 5%, pause at 10%):",
+		"2026-11-12  0.412%", "2026-11-13  0.389%", "2026-11-14  0.455%", "2026-11-15  1.870%", "2026-11-16  0.502%", "2026-11-17  0.440%", "",
+		"complaint rate per day (review at 0.1%, pause at 0.5%):",
+		"2026-11-12  0.011%", "2026-11-13  0.009%", "2026-11-14  0.014%", "2026-11-15  0.032%", "2026-11-16  0.012%", "2026-11-17  0.010%")
+	save("ses", ses)
 }

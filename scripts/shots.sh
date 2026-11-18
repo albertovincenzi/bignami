@@ -7,4 +7,5 @@ BIGNAMI_SHOTS="$tmp" go test -run TestRenderShots ./... >/dev/null
 python3 scripts/ansi2svg.py "$tmp/home.ansi" assets/screenshot-home.svg "bignami"
 python3 scripts/ansi2svg.py "$tmp/sqs.ansi" assets/screenshot-sqs.svg "bignami · AWS › SQS"
 python3 scripts/ansi2svg.py "$tmp/s3.ansi" assets/screenshot-s3.svg "bignami · AWS › S3"
+python3 scripts/ansi2svg.py "$tmp/ses.ansi" assets/screenshot-ses.svg "bignami · AWS › SES"
 rm -rf "$tmp"
